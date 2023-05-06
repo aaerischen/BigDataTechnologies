@@ -1,48 +1,42 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: <your_namespace>
   name: lab0-jupyter
+  namespace: <your_login>
+
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: jupyter-spark
+      jupyter: lab0
   template:
     metadata:
       labels:
-        app: jupyter-spark
+        jupyter: lab0
     spec:
-      volumes:
-        - name: shared-storage
-          persistentVolumeClaim:
-            claimName: <your_claimname>
-            readOnly: true
-        - name: nfs-home-storage
-          persistentVolumeClaim:
-            claimName: <your_claimname>
-            readOnly: false
-      serviceAccountName: spark
       containers:
-      - name: jupyter
-        image: node03.st:5000/pyspark-hdfs-jupyter:<your_login>
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 8888
-        command: [ "start-notebook.sh" ]
-        args: [ "--NotebookApp.token='amogus1337'" ] #insert your own token for jupyter environment
-        resources:
-          limits:
-            memory: "8Gi"
-            cpu: "4"
-        volumeMounts:
-          - mountPath: "/home/jovyan/shared-data"
-            name: shared-storage
-            readOnly: true
-          - mountPath: "/home/jovyan/nfs-home"
-            name: nfs-home-storage
-            readOnly: false
-          - mountPath: "/home/jovyan/.m2"
-            name: shared-storage
-            readOnly: true
-            subPath: "maven_m2"
+        - name: jupyter
+          image: node03.st:5000/pyspark-hdfs-jupyter:<your_login>
+          ports:
+            - containerPort: 8282
+          command: ["start-notebook.sh"]  # Without CrashBackOff
+          args: ["--NotebookApp.token='<your_password>'", "--NotebookApp.port=8282"]
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "1"
+            limits:
+              memory: "2Gi"
+              cpu: "1"
+
+          volumeMounts:
+            - name: config-volume
+              mountPath: /home/jovyan/.jupyter
+              readOnly: true
+      volumes:
+        - name: config-volume
+          configMap:
+            name: lab0-jupyter-cm
+            items:
+              - key: "jupyter_notebook_config.py"
+                path: "jupyter_notebook_config.py"
