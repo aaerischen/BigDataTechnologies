@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: vbazarova-370609
+  namespace: <your_namespace>
   name: lab0-jupyter
 spec:
   replicas: 1
@@ -16,21 +16,21 @@ spec:
       volumes:
         - name: shared-storage
           persistentVolumeClaim:
-            claimName: pvc-shared-vbazarova-370609
+            claimName: <your_claimname>
             readOnly: true
         - name: nfs-home-storage
           persistentVolumeClaim:
-            claimName: pvc-vbazarova-370609
+            claimName: <your_claimname>
             readOnly: false
       serviceAccountName: spark
       containers:
       - name: jupyter
-        image: node03.st:5000/pyspark-hdfs-jupyter:vbazarova-370609
+        image: node03.st:5000/pyspark-hdfs-jupyter:<your_login>
         imagePullPolicy: Always
         ports:
         - containerPort: 8888
         command: [ "start-notebook.sh" ]
-        args: [ "--NotebookApp.token='amogus1337'" ]
+        args: [ "--NotebookApp.token='amogus1337'" ] #insert your own token for jupyter environment
         resources:
           limits:
             memory: "8Gi"
