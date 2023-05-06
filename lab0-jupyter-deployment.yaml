@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: vbazarova-370609
+  name: lab0-jupyter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jupyter-spark
+  template:
+    metadata:
+      labels:
+        app: jupyter-spark
+    spec:
+      volumes:
+        - name: shared-storage
+          persistentVolumeClaim:
+            claimName: pvc-shared-vbazarova-370609
+            readOnly: true
+        - name: nfs-home-storage
+          persistentVolumeClaim:
+            claimName: pvc-vbazarova-370609
+            readOnly: false
+      serviceAccountName: spark
+      containers:
+      - name: jupyter
+        image: node03.st:5000/pyspark-hdfs-jupyter:vbazarova-370609
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8888
+        command: [ "start-notebook.sh" ]
+        args: [ "--NotebookApp.token='amogus1337'" ]
+        resources:
+          limits:
+            memory: "8Gi"
+            cpu: "4"
+        volumeMounts:
+          - mountPath: "/home/jovyan/shared-data"
+            name: shared-storage
+            readOnly: true
+          - mountPath: "/home/jovyan/nfs-home"
+            name: nfs-home-storage
+            readOnly: false
+          - mountPath: "/home/jovyan/.m2"
+            name: shared-storage
+            readOnly: true
+            subPath: "maven_m2"
